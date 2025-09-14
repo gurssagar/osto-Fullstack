@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: osto-backend
+    env: go
+    buildCommand: go build -o osto-backend ./cmd/server
+    startCommand: ./osto-backend
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: osto-db
+          property: connectionString.host
+      - key: DB_PORT
+        fromDatabase:
+          name: osto-db
+          property: connectionString.port
+      - key: DB_NAME
+        fromDatabase:
+          name: osto-db
+          property: connectionString.database
+      - key: DB_USER
+        fromDatabase:
+          name: osto-db
+          property: connectionString.user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: osto-db
+          property: connectionString.password
+      - key: DB_SSLMODE
+        value: require
+      - key: DB_TIMEZONE
+        value: UTC
+      - key: SERVER_PORT
+        value: 8080
+      - key: SERVER_HOST
+        value: 0.0.0.0
+      - key: ENVIRONMENT
+        value: production
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_ACCESS_TOKEN_EXPIRY
+        value: 15m
+      - key: JWT_REFRESH_TOKEN_EXPIRY
+        value: 24h
+
+databases:
+  - name: osto-db
+    databaseName: osto_prod
+    user: osto_admin
+    plan: free
+    region: oregon
+    version: 15
