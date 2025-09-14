@@ -6,6 +6,9 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
 
+// Force dynamic rendering to avoid static generation errors with cookies
+export const dynamic = 'force-dynamic';
+
 export default async function SettingsPage(){
     // Get session data to ensure user is authenticated
     const sessionData = await getSession();

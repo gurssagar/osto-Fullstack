@@ -5,6 +5,9 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from "@/auth";
 import { getSession } from '@/lib/session';
+
+// Force dynamic rendering to avoid static generation errors with cookies
+export const dynamic = 'force-dynamic';
 interface DashboardData {
   subscriptions: any[];
   plans: any[];
