@@ -13,7 +13,7 @@ import (
 // CORSMiddleware configures CORS settings
 func CORSMiddleware() gin.HandlerFunc {
 	config := cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3001", "https://yourdomain.com"},
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3001", "https://osto-fullstack.vercel.app"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
 		ExposeHeaders:    []string{"Content-Length", "X-Request-ID"},
