@@ -141,7 +141,7 @@ class APIClient {
   private refreshToken: string | null = null;
 
   constructor() {
-    this.baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api/v1';
+    this.baseURL = process.env.API_BASE_URL || 'https://osto-fullstack.vercel.app/api/v1';
     
     // Load tokens from localStorage if available (fallback)
     if (typeof window !== 'undefined') {

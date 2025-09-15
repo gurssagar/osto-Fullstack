@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createSession, deleteSession, SessionData } from '@/lib/session'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+const API_BASE_URL = process.env.API_BASE_URL || 'https://osto-fullstack.vercel.app/'
 
 interface LoginData {
   email: string

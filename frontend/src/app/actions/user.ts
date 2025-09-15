@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+const API_BASE_URL = process.env.API_BASE_URL || 'https://osto-fullstack.vercel.app/'
 
 interface ApiResponse<T = any> {
   success: boolean
