@@ -12,13 +12,21 @@ interface ApiResponse<T = any> {
 }
 
 interface CreateSubscriptionData {
+  organization_id: string
   plan_id: string
   payment_method_id?: string
+  billing_cycle?: string
+  trial_ends_at?: string
+  metadata?: Record<string, any>
 }
 
 interface UpdateSubscriptionData {
   plan_id?: string
   status?: string
+  payment_method_id?: string
+  billing_cycle?: string
+  trial_ends_at?: string
+  metadata?: Record<string, any>
 }
 
 
@@ -94,8 +102,12 @@ export async function createSubscriptionAction(formData: FormData): Promise<ApiR
     
     
     const subscriptionData: CreateSubscriptionData = {
+      organization_id: formData.get('organization_id') as string,
       plan_id: formData.get('plan_id') as string,
       payment_method_id: formData.get('payment_method_id') as string || undefined,
+      billing_cycle: formData.get('billing_cycle') as string || undefined,
+      trial_ends_at: formData.get('trial_ends_at') as string || undefined,
+      metadata: formData.get('metadata') ? JSON.parse(formData.get('metadata') as string) : undefined,
     }
 
     const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions`, {
@@ -134,6 +146,10 @@ export async function updateSubscriptionAction(id: string, formData: FormData): 
     const updateData: UpdateSubscriptionData = {
       plan_id: formData.get('plan_id') as string || undefined,
       status: formData.get('status') as string || undefined,
+      payment_method_id: formData.get('payment_method_id') as string || undefined,
+      billing_cycle: formData.get('billing_cycle') as string || undefined,
+      trial_ends_at: formData.get('trial_ends_at') as string || undefined,
+      metadata: formData.get('metadata') ? JSON.parse(formData.get('metadata') as string) : undefined,
     }
 
     // Remove undefined values

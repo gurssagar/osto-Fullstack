@@ -7,24 +7,41 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { getInvoiceAction, downloadInvoiceAction } from '@/app/actions/invoices';
 
-// Define Invoice interface
+// Define Invoice and InvoiceItem interfaces
+interface InvoiceItem {
+  invoice_id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  amount: number;
+  tax_rate?: number;
+  tax_amount?: number;
+  metadata?: Record<string, any>;
+}
+
 interface Invoice {
   id: string;
-  invoice_number: string;
-  amount: number;
-  currency: string;
-  status: string;
-  due_date: string;
-  created_at: string;
   organization_id: string;
   subscription_id?: string;
+  payment_method_id?: string;
+  invoice_number: string;
+  status: string;
+  currency: string;
+  subtotal: number;
+  tax_amount: number;
+  discount_amount?: number;
+  total: number;
+  due_date: string;
+  issued_at?: string;
+  paid_at?: string;
+  notes?: string;
+  metadata?: Record<string, any>;
+  items?: InvoiceItem[];
+  created_at: string;
+  updated_at: string;
+  // Legacy field for backward compatibility
+  amount?: number;
   description?: string;
-  items?: Array<{
-    description: string;
-    quantity: number;
-    unit_price: number;
-    total: number;
-  }>;
 }
 import { Loader2 } from 'lucide-react';
 

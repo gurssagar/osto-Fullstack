@@ -23,6 +23,11 @@ interface User {
   email: string;
   first_name: string;
   last_name: string;
+  phone?: string;
+  avatar_url?: string;
+  timezone?: string;
+  language?: string;
+  metadata?: Record<string, any>;
   created_at: string;
   updated_at: string;
 }
@@ -30,7 +35,13 @@ interface User {
 interface Organization {
   id: string;
   name: string;
+  slug?: string;
   description?: string;
+  website?: string;
+  phone?: string;
+  email?: string;
+  logo_url?: string;
+  settings?: Record<string, any>;
   created_at: string;
   updated_at: string;
 }
@@ -62,11 +73,21 @@ const Settings: React.FC<SettingsProps> = ({
     first_name: '',
     last_name: '',
     email: '',
+    phone: '',
+    avatar_url: '',
+    timezone: '',
+    language: '',
   });
   
   // Organization form data
   const [orgData, setOrgData] = useState({
     name: '',
+    slug: '',
+    description: '',
+    website: '',
+    phone: '',
+    email: '',
+    logo_url: '',
   });
   
   // Password change form data
@@ -82,11 +103,21 @@ const Settings: React.FC<SettingsProps> = ({
         first_name: user.first_name || '',
         last_name: user.last_name || '',
         email: user.email || '',
+        phone: user.phone || '',
+        avatar_url: user.avatar_url || '',
+        timezone: user.timezone || '',
+        language: user.language || '',
       });
     }
     if (organization) {
       setOrgData({
         name: organization.name || '',
+        slug: organization.slug || '',
+        description: organization.description || '',
+        website: organization.website || '',
+        phone: organization.phone || '',
+        email: organization.email || '',
+        logo_url: organization.logo_url || '',
       });
     }
   }, [user, organization]);
@@ -101,6 +132,10 @@ const Settings: React.FC<SettingsProps> = ({
       formData.append('first_name', profileData.first_name);
       formData.append('last_name', profileData.last_name);
       formData.append('email', profileData.email);
+      formData.append('phone', profileData.phone);
+      formData.append('avatar_url', profileData.avatar_url);
+      formData.append('timezone', profileData.timezone);
+      formData.append('language', profileData.language);
       
       const result = await updateProfileAction(formData);
       
@@ -126,6 +161,12 @@ const Settings: React.FC<SettingsProps> = ({
     try {
       const formData = new FormData();
       formData.append('name', orgData.name);
+      formData.append('slug', orgData.slug);
+      formData.append('description', orgData.description);
+      formData.append('website', orgData.website);
+      formData.append('phone', orgData.phone);
+      formData.append('email', orgData.email);
+      formData.append('logo_url', orgData.logo_url);
       
       const result = await updateOrganizationAction(formData);
       

@@ -11,6 +11,36 @@ interface ApiResponse<T = any> {
   error?: string
 }
 
+interface InvoiceItemData {
+  invoice_id: string
+  description: string
+  quantity: number
+  unit_price: number
+  amount: number
+  tax_rate?: number
+  tax_amount?: number
+  metadata?: Record<string, any>
+}
+
+interface InvoiceData {
+  organization_id: string
+  subscription_id?: string
+  payment_method_id?: string
+  invoice_number: string
+  status: string
+  currency: string
+  subtotal: number
+  tax_amount: number
+  discount_amount?: number
+  total: number
+  due_date: string
+  issued_at?: string
+  paid_at?: string
+  notes?: string
+  metadata?: Record<string, any>
+  items?: InvoiceItemData[]
+}
+
 async function getAuthHeaders() {
   const cookieStore = await cookies()
   const token = cookieStore.get('token')?.value
@@ -201,13 +231,104 @@ export async function markInvoiceAsPaidAction(id: string): Promise<ApiResponse> 
   }
 }
 
+export async function createInvoiceAction(formData: FormData): Promise<ApiResponse> {
+  try {
+    const invoiceData: InvoiceData = {
+      organization_id: formData.get('organization_id') as string,
+      subscription_id: formData.get('subscription_id') as string || undefined,
+      payment_method_id: formData.get('payment_method_id') as string || undefined,
+      invoice_number: formData.get('invoice_number') as string,
+      status: formData.get('status') as string || 'draft',
+      currency: formData.get('currency') as string || 'USD',
+      subtotal: parseFloat(formData.get('subtotal') as string),
+      tax_amount: parseFloat(formData.get('tax_amount') as string) || 0,
+      discount_amount: formData.get('discount_amount') ? parseFloat(formData.get('discount_amount') as string) : undefined,
+      total: parseFloat(formData.get('total') as string),
+      due_date: formData.get('due_date') as string,
+      issued_at: formData.get('issued_at') as string || undefined,
+      notes: formData.get('notes') as string || undefined,
+      metadata: formData.get('metadata') ? JSON.parse(formData.get('metadata') as string) : undefined,
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/invoices`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(invoiceData),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: result.error || 'Failed to create invoice',
+      }
+    }
+
+    return {
+      success: true,
+      data: result.data,
+      message: 'Invoice created successfully',
+    }
+  } catch (error) {
+    console.error('Create invoice error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'An unexpected error occurred',
+    }
+  }
+}
+
+export async function updateInvoiceAction(id: string, formData: FormData): Promise<ApiResponse> {
+  try {
+    const updateData: Partial<InvoiceData> = {
+      status: formData.get('status') as string || undefined,
+      due_date: formData.get('due_date') as string || undefined,
+      notes: formData.get('notes') as string || undefined,
+      metadata: formData.get('metadata') ? JSON.parse(formData.get('metadata') as string) : undefined,
+    }
+
+    // Remove undefined values
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key as keyof InvoiceData] === undefined) {
+        delete updateData[key as keyof InvoiceData]
+      }
+    })
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/invoices/${id}`, {
+      method: 'PUT',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(updateData),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: result.error || 'Failed to update invoice',
+      }
+    }
+
+    return {
+      success: true,
+      data: result.data,
+      message: 'Invoice updated successfully',
+    }
+  } catch (error) {
+    console.error('Update invoice error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'An unexpected error occurred',
+    }
+  }
+}
+
 export async function sendInvoiceReminderAction(id: string): Promise<ApiResponse> {
   try {
-    
-
     const response = await fetch(`${API_BASE_URL}/api/v1/invoices/${id}/send-reminder`, {
       method: 'POST',
-      
+      headers: await getAuthHeaders(),
     })
 
     const result = await response.json()

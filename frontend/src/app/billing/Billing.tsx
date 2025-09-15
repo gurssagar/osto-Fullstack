@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { getSession, SessionData } from '@/lib/session'
+import { toast } from 'sonner'
 import {
   Select,
   SelectTrigger,
@@ -17,18 +17,73 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 
-const BillingTabs: React.FC = () => {
-  const [sessionData, setSessionData] = useState<SessionData | null>(null)
-  const [activeTab, setActiveTab] = useState('email')
+interface PaymentMethod {
+  id: string;
+  organization_id: string;
+  type: string;
+  provider: string;
+  provider_id?: string;
+  last4?: string;
+  brand?: string;
+  expiry_month?: number;
+  expiry_year?: number;
+  holder_name?: string;
+  is_default?: boolean;
+  is_active?: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
-  useEffect(() => {
-    const loadSession = async () => {
-      const session = await getSession()
-      setSessionData(session)
-      console.log(session, "session data")
-    }
-    loadSession()
-  }, [])
+interface BillingAddress {
+  id: string;
+  organization_id: string;
+  company_name?: string;
+  contact_name: string;
+  address_line1: string;
+  address_line2?: string;
+  city: string;
+  state?: string;
+  postal_code: string;
+  country: string;
+  tax_id?: string;
+  is_default?: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface BillingHistoryItem {
+  id: string;
+  organization_id: string;
+  amount: number;
+  currency: string;
+  description: string;
+  status: string;
+  created_at: string;
+}
+
+interface BillingTabsProps {
+  paymentMethods: PaymentMethod[];
+  billingAddress: BillingAddress | null;
+  billingHistory: BillingHistoryItem[];
+  organizationId: string;
+  addPaymentMethodAction: (formData: FormData) => Promise<any>;
+  updatePaymentMethodAction: (id: string, formData: FormData) => Promise<any>;
+  deletePaymentMethodAction: (id: string) => Promise<any>;
+  updateBillingAddressAction: (formData: FormData) => Promise<any>;
+}
+
+const BillingTabs: React.FC<BillingTabsProps> = ({
+  paymentMethods,
+  billingAddress,
+  billingHistory,
+  organizationId,
+  addPaymentMethodAction,
+  updatePaymentMethodAction,
+  deletePaymentMethodAction,
+  updateBillingAddressAction
+}) => {
+  const [activeTab, setActiveTab] = useState('email')
+  const [isLoading, setIsLoading] = useState(false)
   return (
      <div className="w-full">
       <h1 className="text-2xl font-semibold mb-6">Billing Administration</h1>

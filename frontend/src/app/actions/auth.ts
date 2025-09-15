@@ -16,6 +16,8 @@ interface RegisterData {
   password: string
   first_name: string
   last_name: string
+  role?: string
+  organization?: string
   organization_name?: string
 }
 
@@ -67,12 +69,18 @@ export async function loginAction(formData: FormData): Promise<ApiResponse> {
         first_name: result.data.user.first_name,
         last_name: result.data.user.last_name,
         role: result.data.user.role,
-        is_active: result.data.user.is_active
+        is_active: result.data.user.is_active,
+        organization: result.data.user.organization
       },
       organization: result.data.organization ? {
         id: result.data.organization.id,
         name: result.data.organization.name,
-        description: result.data.organization.description
+        slug: result.data.organization.slug,
+        description: result.data.organization.description,
+        website: result.data.organization.website,
+        phone: result.data.organization.phone,
+        email: result.data.organization.email,
+        is_active: result.data.organization.is_active
       } : undefined,
       accessToken: result.data.token,
       refreshToken: result.data.refresh_token,
@@ -101,6 +109,8 @@ export async function registerAction(formData: FormData): Promise<ApiResponse> {
       password: formData.get('password') as string,
       first_name: formData.get('first_name') as string,
       last_name: formData.get('last_name') as string,
+      role: formData.get('role') as string || undefined,
+      organization: formData.get('organization') as string || undefined,
       organization_name: formData.get('organization_name') as string || undefined,
     }
 

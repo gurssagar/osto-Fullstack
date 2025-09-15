@@ -12,21 +12,37 @@ interface ApiResponse<T = any> {
 }
 
 interface PaymentMethodData {
+  organization_id: string
   type: string
-  card_number?: string
+  provider: string
+  provider_id?: string
+  last4?: string
+  brand?: string
   expiry_month?: number
   expiry_year?: number
+  holder_name?: string
+  is_default?: boolean
+  is_active?: boolean
+  // Legacy fields for backward compatibility
+  card_number?: string
   cvv?: string
   cardholder_name?: string
-  is_default?: boolean
 }
 
 interface BillingAddressData {
-  street_address: string
+  organization_id: string
+  company_name?: string
+  contact_name: string
+  address_line1: string
+  address_line2?: string
   city: string
-  state: string
+  state?: string
   postal_code: string
   country: string
+  tax_id?: string
+  is_default?: boolean
+  // Legacy field for backward compatibility
+  street_address?: string
 }
 
 async function getAuthHeaders() {
@@ -80,13 +96,21 @@ export async function addPaymentMethodAction(formData: FormData): Promise<ApiRes
     
     
     const paymentMethodData: PaymentMethodData = {
+      organization_id: formData.get('organization_id') as string,
       type: formData.get('type') as string,
-      card_number: formData.get('card_number') as string || undefined,
+      provider: formData.get('provider') as string || 'stripe',
+      provider_id: formData.get('provider_id') as string || undefined,
+      last4: formData.get('last4') as string || undefined,
+      brand: formData.get('brand') as string || undefined,
       expiry_month: formData.get('expiry_month') ? parseInt(formData.get('expiry_month') as string) : undefined,
       expiry_year: formData.get('expiry_year') ? parseInt(formData.get('expiry_year') as string) : undefined,
+      holder_name: formData.get('holder_name') as string || formData.get('cardholder_name') as string || undefined,
+      is_default: formData.get('is_default') === 'true',
+      is_active: formData.get('is_active') !== 'false',
+      // Legacy fields for backward compatibility
+      card_number: formData.get('card_number') as string || undefined,
       cvv: formData.get('cvv') as string || undefined,
       cardholder_name: formData.get('cardholder_name') as string || undefined,
-      is_default: formData.get('is_default') === 'true',
     }
 
     // Remove undefined values
@@ -237,11 +261,19 @@ export async function updateBillingAddressAction(formData: FormData): Promise<Ap
     
     
     const addressData: BillingAddressData = {
-      street_address: formData.get('street_address') as string,
+      organization_id: formData.get('organization_id') as string,
+      company_name: formData.get('company_name') as string || undefined,
+      contact_name: formData.get('contact_name') as string,
+      address_line1: formData.get('address_line1') as string || formData.get('street_address') as string,
+      address_line2: formData.get('address_line2') as string || undefined,
       city: formData.get('city') as string,
-      state: formData.get('state') as string,
+      state: formData.get('state') as string || undefined,
       postal_code: formData.get('postal_code') as string,
       country: formData.get('country') as string,
+      tax_id: formData.get('tax_id') as string || undefined,
+      is_default: formData.get('is_default') === 'true',
+      // Legacy field for backward compatibility
+      street_address: formData.get('street_address') as string || undefined,
     }
 
     const response = await fetch(`${API_BASE_URL}/api/v1/billing-address`, {

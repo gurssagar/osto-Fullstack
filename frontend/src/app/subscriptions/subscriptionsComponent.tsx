@@ -23,8 +23,37 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiClient, Subscription, Plan } from '@/lib/api-client';
 import { toast } from 'sonner';
+import { createSubscriptionAction, updateSubscriptionAction, cancelSubscriptionAction } from '@/app/actions/subscriptions';
+
+interface Subscription {
+  id: string;
+  organization_id: string;
+  plan_id: string;
+  payment_method_id?: string;
+  status: string;
+  billing_cycle?: string;
+  trial_ends_at?: string;
+  current_period_start: string;
+  current_period_end: string;
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Plan {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  currency: string;
+  billing_cycle: string;
+  features?: string[];
+  is_active: boolean;
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
 
 interface SubscriptionComponentsProps {
   subscriptions: Subscription[];
@@ -44,24 +73,20 @@ const SubscriptionComponents: React.FC<SubscriptionComponentsProps> = ({ subscri
     setLocalPlans(plans);
   }, [subscriptions, plans]);
 
-  const fetchSubscriptions = async () => {
-    if (!organization) return;
-    
-    try {
-      const data = await apiClient.getSubscriptionsByOrganization(organization.id);
-      setLocalSubscriptions(data);
-    } catch (error) {
-      console.error('Failed to fetch subscriptions:', error);
-      toast.error('Failed to load subscriptions');
-    }
+  const refreshPage = () => {
+    window.location.reload();
   };
 
   const handleCancelSubscription = async (subscriptionId: string) => {
     setActionLoading(subscriptionId);
     try {
-      await apiClient.cancelSubscription(subscriptionId);
-      toast.success('Subscription cancelled successfully');
-      await fetchSubscriptions();
+      const result = await cancelSubscriptionAction(subscriptionId);
+      if (result.success) {
+        toast.success('Subscription cancelled successfully');
+        refreshPage();
+      } else {
+        toast.error(result.error || 'Failed to cancel subscription');
+      }
     } catch (error) {
       console.error('Failed to cancel subscription:', error);
       toast.error('Failed to cancel subscription');
@@ -73,9 +98,15 @@ const SubscriptionComponents: React.FC<SubscriptionComponentsProps> = ({ subscri
   const handleRenewSubscription = async (subscriptionId: string) => {
     setActionLoading(subscriptionId);
     try {
-      await apiClient.renewSubscription(subscriptionId);
-      toast.success('Subscription renewed successfully');
-      await fetchSubscriptions();
+      const formData = new FormData();
+      formData.append('status', 'active');
+      const result = await updateSubscriptionAction(subscriptionId, formData);
+      if (result.success) {
+        toast.success('Subscription renewed successfully');
+        refreshPage();
+      } else {
+        toast.error(result.error || 'Failed to renew subscription');
+      }
     } catch (error) {
       console.error('Failed to renew subscription:', error);
       toast.error('Failed to renew subscription');
@@ -89,13 +120,18 @@ const SubscriptionComponents: React.FC<SubscriptionComponentsProps> = ({ subscri
     
     setActionLoading(planId);
     try {
-      await apiClient.createSubscription({
-        organization_id: organization.id,
-        plan_id: planId,
-        auto_renew: true,
-      });
-      toast.success('Subscription created successfully');
-      await fetchSubscriptions();
+      const formData = new FormData();
+      formData.append('organization_id', organization.id);
+      formData.append('plan_id', planId);
+      formData.append('billing_cycle', 'monthly');
+      
+      const result = await createSubscriptionAction(formData);
+      if (result.success) {
+        toast.success('Subscription created successfully');
+        refreshPage();
+      } else {
+        toast.error(result.error || 'Failed to create subscription');
+      }
     } catch (error: any) {
       console.error('Failed to create subscription:', error);
       toast.error(error.message || 'Failed to create subscription');
@@ -197,31 +233,31 @@ const SubscriptionComponents: React.FC<SubscriptionComponentsProps> = ({ subscri
                         <span className="text-gray-600 dark:text-gray-400">Price:</span>
                         <span className="font-medium">
                           {plan ? formatPrice(plan.price, plan.currency) : 'N/A'}
-                          {plan && `/${plan.interval}`}
+                          {plan && `/${plan?.interval}`}
                         </span>
                       </div>
                       
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600 dark:text-gray-400">Start Date:</span>
                         <span className="font-medium">
-                          {formatDate(subscription.start_date)}
+                          {formatDate(subscription?.start_date)}
                         </span>
                       </div>
                       
-                      {subscription.end_date && (
+                      {subscription?.end_date && (
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600 dark:text-gray-400">End Date:</span>
                           <span className="font-medium">
-                            {formatDate(subscription.end_date)}
+                            {formatDate(subscription?.end_date)}
                           </span>
                         </div>
                       )}
                       
-                      {subscription.trial_end_date && (
+                      {subscription?.trial_end_date && (
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600 dark:text-gray-400">Trial Ends:</span>
                           <span className="font-medium">
-                            {formatDate(subscription.trial_end_date)}
+                            {formatDate(subscription?.trial_end_date)}
                           </span>
                         </div>
                       )}
@@ -229,7 +265,7 @@ const SubscriptionComponents: React.FC<SubscriptionComponentsProps> = ({ subscri
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600 dark:text-gray-400">Auto Renew:</span>
                         <span className="font-medium">
-                          {subscription.auto_renew ? 'Yes' : 'No'}
+                          {subscription?.auto_renew ? 'Yes' : 'No'}
                         </span>
                       </div>
                     </div>
@@ -310,7 +346,7 @@ const SubscriptionComponents: React.FC<SubscriptionComponentsProps> = ({ subscri
             
             return (
               <Card key={plan.id} className="relative">
-                {plan.is_popular && (
+                {plan?.is_popular && (
                   <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-blue-600 text-white px-3 py-1">
                       Most Popular
@@ -336,11 +372,11 @@ const SubscriptionComponents: React.FC<SubscriptionComponentsProps> = ({ subscri
                       {formatPrice(plan.price, plan.currency)}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      per {plan.interval}
+                      per {plan?.interval}
                     </div>
-                    {plan.trial_days > 0 && (
+                    {plan?.trial_days > 0 && (
                       <div className="text-sm text-green-600 dark:text-green-400 mt-1">
-                        {plan.trial_days} days free trial
+                        {plan?.trial_days} days free trial
                       </div>
                     )}
                   </div>

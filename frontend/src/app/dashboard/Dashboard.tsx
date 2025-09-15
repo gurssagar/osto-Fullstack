@@ -32,6 +32,10 @@ interface Subscription {
   status: string;
   start_date: string;
   end_date?: string;
+  payment_method_id?: string;
+  billing_cycle?: string;
+  trial_ends_at?: string;
+  metadata?: Record<string, any>;
   created_at: string;
   updated_at: string;
 }
@@ -50,15 +54,35 @@ interface Plan {
   updated_at: string;
 }
 
+interface InvoiceItem {
+  invoice_id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  amount: number;
+  tax_rate?: number;
+  tax_amount?: number;
+  metadata?: Record<string, any>;
+}
+
 interface Invoice {
   id: string;
   organization_id: string;
   subscription_id?: string;
+  payment_method_id?: string;
   invoice_number: string;
   status: string;
-  total: number;
   currency: string;
+  subtotal: number;
+  tax_amount: number;
+  discount_amount?: number;
+  total: number;
   due_date: string;
+  issued_at?: string;
+  paid_at?: string;
+  notes?: string;
+  metadata?: Record<string, any>;
+  items?: InvoiceItem[];
   created_at: string;
   updated_at: string;
 }
